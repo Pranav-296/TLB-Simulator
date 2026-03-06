@@ -13,7 +13,6 @@ class TLB:
 
         if page in self.entries:
 
-            # Update for LRU
             if self.policy == "LRU":
                 self.entries.remove(page)
                 self.entries.append(page)
@@ -27,11 +26,9 @@ class TLB:
 
         if len(self.entries) >= self.size:
 
-            # FIFO replacement
             if self.policy == "FIFO":
                 self.entries.pop(0)
 
-            # LRU replacement
             elif self.policy == "LRU":
                 self.entries.pop(0)
 
@@ -54,21 +51,28 @@ def run_simulation(addresses, tlb_size, policy, experiment_mode=False):
     hits = 0
     misses = 0
 
-    for address in addresses:
+    if not experiment_mode:
+        print("\nAccess | Page | Result | TLB State")
+        print("----------------------------------")
+
+    for i, address in enumerate(addresses):
 
         page = address
 
         if tlb.lookup(page):
 
             hits += 1
+            result = "HIT"
 
         else:
 
             misses += 1
-
             frame = page_table.lookup(page)
-
             tlb.insert(frame)
+            result = "MISS"
+
+        if not experiment_mode:
+            print(f"{i+1:5} | {page:4} | {result:5} | {tlb.entries}")
 
 
     total = hits + misses
@@ -82,7 +86,6 @@ def run_simulation(addresses, tlb_size, policy, experiment_mode=False):
         miss_penalty=100
     )
 
-    # In experiment mode we only return values
     if experiment_mode:
         return hits, misses
 
