@@ -13,6 +13,7 @@ class TLB:
 
         if page in self.entries:
 
+            # update order for LRU
             if self.policy == "LRU":
                 self.entries.remove(page)
                 self.entries.append(page)
@@ -25,12 +26,7 @@ class TLB:
     def insert(self, page):
 
         if len(self.entries) >= self.size:
-
-            if self.policy == "FIFO":
-                self.entries.pop(0)
-
-            elif self.policy == "LRU":
-                self.entries.pop(0)
+            self.entries.pop(0)
 
         self.entries.append(page)
 
@@ -39,11 +35,11 @@ class TLB:
 class PageTable:
 
     def lookup(self, page):
-        return page
+        return page   # simple page → frame mapping
 
 
 
-def run_simulation(addresses, tlb_size, policy, experiment_mode=False):
+def run_simulation(addresses, tlb_size, policy, page_size, experiment_mode=False):
 
     tlb = TLB(tlb_size, policy)
     page_table = PageTable()
@@ -52,12 +48,13 @@ def run_simulation(addresses, tlb_size, policy, experiment_mode=False):
     misses = 0
 
     if not experiment_mode:
-        print("\nAccess | Page | Result | TLB State")
-        print("----------------------------------")
+        print("\nAccess | Address | Page | Offset | Result | TLB State")
+        print("-------------------------------------------------------")
 
     for i, address in enumerate(addresses):
 
-        page = address
+        page = address // page_size
+        offset = address % page_size
 
         if tlb.lookup(page):
 
@@ -72,7 +69,7 @@ def run_simulation(addresses, tlb_size, policy, experiment_mode=False):
             result = "MISS"
 
         if not experiment_mode:
-            print(f"{i+1:5} | {page:4} | {result:5} | {tlb.entries}")
+            print(f"{i+1:5} | {address:7} | {page:4} | {offset:6} | {result:5} | {tlb.entries}")
 
 
     total = hits + misses
@@ -112,6 +109,7 @@ def main():
 
     n = int(input("Number of memory accesses: "))
     tlb_size = int(input("TLB size: "))
+    page_size = int(input("Page size: "))
     policy = input("Replacement policy (FIFO/LRU): ").upper()
 
 
@@ -119,15 +117,13 @@ def main():
         addresses = generate_sequential(n)
 
     elif pattern == "random":
-        addresses = generate_random(n, 10)
+        addresses = generate_random(n, 50)
 
     else:
         addresses = generate_locality(n)
 
 
-    print("\nAddress Stream:", addresses)
-
-    run_simulation(addresses, tlb_size, policy)
+    run_simulation(addresses, tlb_size, policy, page_size)
 
 
 if __name__ == "__main__":

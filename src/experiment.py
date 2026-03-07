@@ -17,7 +17,7 @@ def run_experiment():
     for size in tlb_sizes:
         for policy in policies:
 
-            hits, misses = run_simulation(accesses, size, policy, experiment_mode=True)
+            hits, misses = run_simulation(accesses,size,policy,4,experiment_mode=True)
 
             total = hits + misses
             ratio = hits / total
