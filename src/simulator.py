@@ -1,5 +1,5 @@
-from address_generator import generate_sequential, generate_random, generate_locality
-from metrics import hit_ratio, miss_rate, calculate_amat
+from src.address_generator import generate_sequential, generate_random, generate_locality
+from src.metrics import hit_ratio, miss_rate, calculate_amat
 
 
 class TLB:
@@ -13,7 +13,7 @@ class TLB:
 
         if page in self.entries:
 
-            # LRU update: move page to most recent
+            # Update for LRU
             if self.policy == "LRU":
                 self.entries.remove(page)
                 self.entries.append(page)
@@ -38,13 +38,15 @@ class TLB:
         self.entries.append(page)
 
 
+
 class PageTable:
 
     def lookup(self, page):
         return page
 
 
-def run_simulation(addresses, tlb_size, policy):
+
+def run_simulation(addresses, tlb_size, policy, experiment_mode=False):
 
     tlb = TLB(tlb_size, policy)
     page_table = PageTable()
@@ -57,12 +59,17 @@ def run_simulation(addresses, tlb_size, policy):
         page = address
 
         if tlb.lookup(page):
+
             hits += 1
 
         else:
+
             misses += 1
+
             frame = page_table.lookup(page)
+
             tlb.insert(frame)
+
 
     total = hits + misses
 
@@ -75,15 +82,23 @@ def run_simulation(addresses, tlb_size, policy):
         miss_penalty=100
     )
 
+    # In experiment mode we only return values
+    if experiment_mode:
+        return hits, misses
+
+
     print("\nTLB Simulation Results")
     print("----------------------")
     print("Replacement Policy:", policy)
     print("Total Accesses:", total)
     print("TLB Hits:", hits)
     print("TLB Misses:", misses)
-    print("Hit Ratio:", round(hr, 3))
-    print("Miss Rate:", round(mr, 3))
+    print("Hit Ratio:", round(hr,3))
+    print("Miss Rate:", round(mr,3))
     print("Average Memory Access Time:", amat)
+
+    return hits, misses
+
 
 
 def main():
@@ -96,6 +111,7 @@ def main():
     tlb_size = int(input("TLB size: "))
     policy = input("Replacement policy (FIFO/LRU): ").upper()
 
+
     if pattern == "sequential":
         addresses = generate_sequential(n)
 
@@ -104,6 +120,7 @@ def main():
 
     else:
         addresses = generate_locality(n)
+
 
     print("\nAddress Stream:", addresses)
 
